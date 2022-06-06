@@ -19,9 +19,11 @@
 
 <h1>Blazor  WASM and minimal APIs CRUD</h1>
 
-<button @onclick="()=> _showingCreateModel = true" class="btn btn-success btn-lg mb-3">
-    Create Post
-</button>
+<div class="d-grid gap-2 d-md-flex justify-content-md-end">
+    <button @onclick="()=> _showingCreateModel = true" class="btn btn-success btn-lg me-md-2 mb-3">
+        Create Post
+    </button>
+</div>
 
 <div class="table-responsive">
     <table class="table border-dark table-striped">
@@ -60,7 +62,7 @@
 </div>
 
 @code {
-    #pragma warning disable CS8618
+#pragma warning disable CS8618
     [Inject]
     protected HttpClient HttpClient { get; set; }
 #pragma warning restore CS8618
