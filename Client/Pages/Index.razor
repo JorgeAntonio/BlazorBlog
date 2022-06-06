@@ -1,0 +1,133 @@
+﻿@page "/"
+
+<PageTitle>Blazor  WASM and minimal APIs CRUD</PageTitle>
+
+@if (_showingCreateModel)
+{
+    <ModalCreatePost OnClickButtonClose="(createdPost)=>CloseCreateModal(createdPost)" />
+}
+
+@if (_showingUpdateModel)
+{
+    <ModalUpdatePost PostToUpdate="_postBeingUpdated" OnClickButtonClose="(updatedPost)=>CloseUpdateModal(updatedPost)" />
+}
+
+@if (_showingDeleteModel)
+{
+    <ModalConfirmDelete PostToDelete="_postBeingDeleted" OnClickButtonClose="(deleteSuccessful)=>CloseDeleteModal(deleteSuccessful)" />
+}
+
+<h1>Blazor  WASM and minimal APIs CRUD</h1>
+
+<button @onclick="()=> _showingCreateModel = true" class="btn btn-success btn-lg mb-3">
+    Create Post
+</button>
+
+<div class="table-responsive">
+    <table class="table border-dark table-striped">
+        <thead>
+            <tr>
+                <th scope="col">PostId</th>
+                <th scope="col">Title</th>
+                <th scope="col">Content</th>
+                <th scope="col">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            @if (_posts != null)
+            {
+                @foreach (var post in _posts)
+                {
+                    <tr>
+                        <th scope="row">@post.PostId</th>
+                        <td>@post.Title</td>
+                        <td>@post.Content</td>
+                        <td>
+                            <button @onclick="() => OpenUpdateModal(post)" class="btn btn-warning w-75 mb-2">
+                                Update
+                            </button>
+                            <button @onclick="() => OpenDeleteModal(post)" class="btn btn-danger w-75">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                }
+            }
+
+        </tbody>
+    </table>
+</div>
+
+@code {
+    #pragma warning disable CS8618
+    [Inject]
+    protected HttpClient HttpClient { get; set; }
+#pragma warning restore CS8618
+
+    private List<Post>? _posts = null;
+
+    private bool _showingCreateModel = false;
+
+    private bool _showingUpdateModel = false;
+
+    private bool _showingDeleteModel = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        //https://localhost:7274
+        _posts = await HttpClient.GetFromJsonAsync<List<Post>?>(APIEndpoints.PostsAll);
+
+        Console.WriteLine($"Found {_posts?.Count} posts!");
+    }
+
+    private void CloseCreateModal(Post? createdPost)
+    {
+        if (createdPost != null)
+        {
+            _posts?.Add(createdPost);
+        }
+        _showingCreateModel = false;
+    }
+
+    private Post? _postBeingUpdated = null;
+
+    private void OpenUpdateModal(Post? postToUpdate)
+    {
+        _postBeingUpdated = postToUpdate;
+        _showingUpdateModel = true;
+    }
+
+    private void CloseUpdateModal(Post? updatedPost)
+    {
+        if (updatedPost != null)
+        {
+            Post? unUpdatedPostInList = _posts?.FirstOrDefault(post => post.PostId == updatedPost.PostId);
+            if (unUpdatedPostInList != null)
+            {
+                unUpdatedPostInList.Title = updatedPost.Title;
+                unUpdatedPostInList.Content = updatedPost.Content;
+            }
+        }
+        _postBeingUpdated = null;
+        _showingUpdateModel = false;
+    }
+
+    private Post? _postBeingDeleted = null;
+
+    private void OpenDeleteModal(Post? postToDelete)
+    {
+        _postBeingDeleted = postToDelete;
+        _showingDeleteModel = true;
+    }
+
+    private void CloseDeleteModal(bool deleteSuccessful)
+    {
+        if (deleteSuccessful && _postBeingDeleted != null)
+        {
+            _posts?.Remove(_postBeingDeleted);
+        }
+        _postBeingDeleted = null;
+        _showingDeleteModel = false;
+    }
+}
